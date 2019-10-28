@@ -39,7 +39,7 @@ nvm run x.x.x app.js
 
 En mi proyecto uso el lenguaje Go, el cual también permite la creación de módulos desde su versión 1.11. En este caso, se usa un archivo `go.mod` para especificar el nombre del módulo (su ruta, como es habitual en Go) y las dependencias explícitas del mismo.
 
-El archivo `go.mod` que he creado para mi proyecto se puede ver [aquí](https://github.com/Varrrro/pay-up/blob/master/go.mod).
+El archivo `go.mod` que he creado para mi proyecto se puede ver [aquí](https://github.com/Varrrro/pay-up/blob/master/go.mod). **NOTA:** Es posible que en el momento que esté observando este archivo, solo contenga el nombre del módulo y la versión de Go utilizada. La herramienta de módulos de Go añade automáticamente a este fichero las dependencias que necesita el proyecto, por lo que no aparecerán hasta que se importen desde los ficheros internos.
 
 ## Ejercicio 3: Descargar el repositorio de ejemplo anterior, instalar las herramientas necesarias (principalmente Scala y sbt) y ejecutar el ejemplo desde `sbt`. Alternativamente, buscar otros marcos para REST en Scala tales como Finatra o Scalatra y probar los ejemplos que se incluyan en el repositorio
 
