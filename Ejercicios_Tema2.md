@@ -80,3 +80,124 @@ Siguiendo los pasos indicados en el [repo del proyecto](https://github.com/JJ/sp
 ## Ejercicio 4: Para la aplicación que se está haciendo, escribir una serie de aserciones y probar que efectivamente no fallan. Añadir tests para una nueva funcionalidad, probar que falla y escribir el código para que no lo haga. A continuación, ejecutarlos desde `mocha` (u otro módulo de test de alto nivel) usando descripciones del test y del grupo de test de forma correcta. Si hasta ahora no has subido el código que has venido realizando a GitHub, es el momento de hacerlo, porque lo vamos a necesitar un poco más adelante
 
 Las aserciones para mi proyecto se escribirán una vez realizado el seminario sobre desarrollo dirigido por pruebas.
+
+Nos vamos a basar en las pruebas escritas para el tipo `Grupo` de mi proyecto, cuya definición se presenta a continuación.
+
+```go
+// Group of people, each of which have a balance in the group.
+type Group struct {
+    ID      int
+    Name    string
+    Members map[string]float32
+}
+
+// AddMember to the given group.
+func (g *Group) AddMember(member string) error {
+    if g.Members == nil {
+        g.Members = make(map[string]float32)
+    }
+
+    if _, prs := g.Members[member]; prs {
+        return &ExistingMembersError{g.ID, []string{member}}
+    }
+
+    g.Members[member] = 0.0
+
+    return nil
+}
+
+// AddMembers to the given group.
+func (g *Group) AddMembers(members []string) error {
+    if g.Members == nil {
+        g.Members = make(map[string]float32)
+    }
+
+    var exs []string
+
+    for _, m := range members {
+        if _, prs := g.Members[m]; prs {
+            exs = append(exs, m)
+            continue
+        }
+
+        g.Members[m] = 0.0
+    }
+
+    if len(exs) != 0 {
+        return &ExistingMembersError{g.ID, exs}
+    }
+
+    return nil
+}
+```
+
+Para probar que esta funcionalidad es correcta, escribimos las siguientes pruebas:
+
+```go
+func TestAddMember(t *testing.T) {
+    g := Group{ID: 123, Name: "Test Group"}
+    m := "Test Member"
+
+    err := g.AddMember(m)
+
+    if err != nil {
+        t.Errorf("Couldn't add new member. Error: " + err.Error())
+    }
+
+    if b := g.Members[m]; b != 0 {
+        t.Errorf("Balance of new member (%s) is not zero (%f).", m, b)
+    }
+}
+
+func TestAddExistingMember(t *testing.T) {
+    g := Group{ID: 123, Name: "Test Group"}
+    m := "Test Member"
+
+    g.AddMember(m)
+    err := g.AddMember(m)
+
+    if err == nil {
+        t.Errorf("Adding duplicate member didn't return an error.")
+    }
+
+    if len(g.Members) > 1 {
+        t.Errorf("Existing member was added to the group.")
+    }
+}
+
+func TestAddMembers(t *testing.T) {
+    g := Group{ID: 123, Name: "Test Group"}
+
+    err := g.AddMembers([]string{"Test1", "Test2"})
+
+    if err != nil {
+        t.Errorf("Couldn't add new members. Error: " + err.Error())
+    }
+
+    for k, v := range g.Members {
+        if v != 0.0 {
+            t.Errorf("Balance of new member (%s) is not zero (%f).", k, v)
+        }
+    }
+}
+
+func TestAddExistingMembers(t *testing.T) {
+    g := Group{ID: 123, Name: "Test Group"}
+
+    err := g.AddMembers([]string{"Test1", "Test2", "Test2"})
+
+    if err == nil {
+        t.Errorf("Adding duplicate member didn't return an error")
+    }
+
+    if len(g.Members) != 2 {
+        t.Errorf("Existing member was added to the group.")
+    }
+}
+```
+
+A diferencia de otros lenguajes, `Go` no dispone de marcos de prueba de alto nivel, sino que integra en su propio *toolchain* las herramientas necesarias para ejecutar estas pruebas. Así, usamos `go test` para lanzar las pruebas y obtener los siguientes resultados.
+
+![Ejecución de las pruebas unitarias](images/tema2/go-test.png)
+
+Como se puede apreciar, si añadimos el flag `-cover` se realiza también un análisis de la cobertura del código.
